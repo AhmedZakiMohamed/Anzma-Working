@@ -5,9 +5,9 @@ FIRE_ALARM) and loads them into PostgreSQL.
 
 Usage:
     pip install psycopg2-binary
-    python generate_data.py                 # 48 hours of data ending now
-    python generate_data.py --hours 24
-    python generate_data.py --reset         # wipe events first, then regenerate
+    python generateData.py                 # 48 hours of data ending now
+    python generateData.py --hours 24
+    python generateData.py --reset         # wipe events first, then regenerate
 
 DB connection comes from env vars (defaults in DB below):
     PGHOST PGPORT PGDATABASE PGUSER PGPASSWORD

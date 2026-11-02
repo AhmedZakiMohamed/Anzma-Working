@@ -3,7 +3,7 @@ Building Data API  (FastAPI + PostgreSQL)
 
 Run:
     pip install -r requirements.txt
-    uvicorn app:app --reload
+    uvicorn App:app --reload
 Docs (Swagger): http://127.0.0.1:8000/docs
 """
 import os

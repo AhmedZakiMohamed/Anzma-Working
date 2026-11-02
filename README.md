@@ -29,13 +29,13 @@ Design notes:
 ├── docs/
 │   ├── Data-Flow-Diagram.png
 │   └── ER-Diagram.png
-├── App.py               # FastAPI: ingestion + retrieval endpoints
-├── generateData.py     # simulated data generator / bulk loader
-├── schema.sql           # tables + indexes
-├── requirements.txt
-├── .env.               # configuration template
+├── .env                 # local DB credentials (git-ignored, create it yourself)
 ├── .gitignore
-└── README.md
+├── App.py               # FastAPI: ingestion + retrieval endpoints
+├── generateData.py      # simulated data generator / bulk loader
+├── README.md
+├── requirements.txt
+└── schema.sql           # tables + indexes
 ```
 
 ## Setup
@@ -45,13 +45,14 @@ Design notes:
    ```bash
    pip install -r requirements.txt
    ```
-3. **Configure** (defaults shown; set `dbname` in `app.py` / `generate_data.py` or use env vars):
-   ```bash
-   export PGHOST=localhost 
-   export PGPORT=5432 
-   export PGDATABASE=building_db 
-   export PGUSER=postgres 
-   export PGPASSWORD=your_secure_password_here
+3. **Configure** Create a file named .env in the project root:
+      PGHOST=localhost
+      PGPORT=5432
+      PGDATABASE=postgres
+      PGUSER=postgres
+      PGPASSWORD=your_password_here
+
+   .env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
    ```
 4. **Generate sample data** (default 48h, minimum 24h):
    ```bash
@@ -123,17 +124,18 @@ curl "http://127.0.0.1:8000/events?system_type=HVAC&limit=5"
 # by location
 curl "http://127.0.0.1:8000/events?location_id=1"
 
-# by asset + time range
+# by asset + time range (use a range inside your generated data, see first_ts/last_ts above)
 curl "http://127.0.0.1:8000/assets/1/events?from=2026-11-01T00:00:00Z&to=2026-11-02T00:00:00Z"
 
 # combined
 curl "http://127.0.0.1:8000/events?system_type=ACCESS&severity=WARNING&location_id=1"
 
-# ingest
+# ingest (timestamp = now, since future timestamps are rejected)
+TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 curl -X POST http://127.0.0.1:8000/ingest -H "Content-Type: application/json" -d '{
   "events": [{
     "asset_name": "HVAC-AHU-01",
-    "ts": "2026-11-02T10:00:00Z",
+    "ts": "'"$TS"'",
     "event_type": "temperature_reading",
     "value": 23.4, "unit": "°C",
     "details": {"humidity": 47}
@@ -152,5 +154,5 @@ curl -X POST http://127.0.0.1:8000/ingest -H "Content-Type: application/json" -d
 ## Known Limitations / Next Steps
 
 - No authentication on the API. 
-- `generate_data.py` loads directly into the DB rather than   through `/ingest`.
+- `generateData.py` loads directly into the DB rather than   through `/ingest`.
 - Partitioning of `events` by time would be the next step for larger volumes.
