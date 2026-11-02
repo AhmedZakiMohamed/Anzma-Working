@@ -4,7 +4,7 @@ Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire
 
 **Success criterion:** retrieve reliable data by **asset**, **location**, **timestamp** and **system type**.
 
-## Architecture / Data Flow
+## Architecture / Data Flow Diagram
 
 ![Data Flow Diagram](docs/Data-Flow-Diagram.png)
 
@@ -12,7 +12,7 @@ Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire
 - **Live ingestion:** any source can `POST /ingest`; events are validated before being stored (the whole batch is rejected if any asset is unknown).
 - **Retrieval:** the REST API joins events with assets, systems and locations so every record comes back with full context.
 
-## Data Model (normalized)
+## ER Diagram
 
 ![ER Diagram](docs/ER-Diagram.png)
 
