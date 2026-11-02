@@ -61,7 +61,7 @@ Design notes:
    python generate_data.py --reset
    # options: --hours 24  --seed 42
    ```
-6. **Run the API:**
+6. **Run the API** (documented API endpoints via Swagger UI):
    ```bash
    uvicorn app:app --reload
    ```
