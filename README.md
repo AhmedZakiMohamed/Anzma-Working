@@ -45,7 +45,7 @@ Design notes:
    ```bash
    pip install -r requirements.txt
    ```
-3. 3. Configure the connection
+3. Configure the connection
 
 Create a file named .env in the project root with the following content:
 
