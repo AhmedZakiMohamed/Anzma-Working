@@ -54,14 +54,15 @@ Design notes:
    PGDATABASE=postgres
    PGUSER=postgres
    PGPASSWORD=your_password_here
-
-.env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
-4. **Generate sample data** (default 48h, minimum 24h):
+   ```
+   ــ
+   .env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
+5. **Generate sample data** (default 48h, minimum 24h):
    ```bash
    python generate_data.py --reset
    # options: --hours 24  --seed 42
    ```
-5. **Run the API:**
+6. **Run the API:**
    ```bash
    uvicorn app:app --reload
    ```
