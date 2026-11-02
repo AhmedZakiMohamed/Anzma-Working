@@ -45,7 +45,7 @@ Design notes:
    ```bash
    pip install -r requirements.txt
    ```
-3. Configure the connection
+3. **Configure the connection:**
 
    Create a file named .env in the project root with the following content:
    ```
@@ -54,6 +54,7 @@ Design notes:
    PGDATABASE=postgres
    PGUSER=postgres
    PGPASSWORD=your_password_here
+   
    
    .env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
 5. **Generate sample data** (default 48h, minimum 24h):
