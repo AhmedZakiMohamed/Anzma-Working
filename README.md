@@ -8,7 +8,7 @@ Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire
 
 ![Data Flow Diagram](docs/Data-Flow-Diagram.png)
 
-- **Historical load:** `generate_data.py` writes 24h+ of simulated events straight to the database.
+- **Historical load:** `generateData.py` writes 24h+ of simulated events straight to the database.
 - **Live ingestion:** any source can `POST /ingest`; events are validated before being stored (the whole batch is rejected if any asset is unknown).
 - **Retrieval:** the REST API joins events with assets, systems and locations so every record comes back with full context.
 
@@ -58,12 +58,12 @@ Design notes:
    .env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
 5. **Generate sample data** (default 48h, minimum 24h):
    ```bash
-   python generate_data.py --reset
+   python generateData.py --reset
    # options: --hours 24  --seed 42
    ```
 6. **Run the API** (documented API endpoints via Swagger UI):
    ```bash
-   uvicorn app:app --reload
+   uvicorn App:app --reload
    ```
    Swagger UI: http://127.0.0.1:8000/docs
 
