@@ -273,3 +273,18 @@ def health():
     with db() as cur:
         cur.execute("SELECT COUNT(*) AS events FROM events")
         return {"status": "ok", "events": cur.fetchone()["events"]}
+
+from dashboard_api import create_router
+app.include_router(create_router(db))
+
+import os
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_page():
+    return FileResponse(os.path.join(BASE_DIR, "static", "dashboard.html"))    

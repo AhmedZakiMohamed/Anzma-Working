@@ -1,8 +1,9 @@
-# Building Data Platform: Data Engineering & System Integration
+# Building Data Platform
 
-Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire Alarm) stored in a normalized PostgreSQL schema and exposed through a documented REST API.
+Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire Alarm) stored in a normalized PostgreSQL schema, exposed through a documented REST API, and visualized in an operational dashboard with KPIs.
 
-**Success criterion:** retrieve reliable data by **asset**, **location**, **timestamp** and **system type**.
+- **Day 2 (Data Engineering & System Integration):** retrieve reliable data by **asset**, **location**, **timestamp** and **system type**.
+- **Day 3 (Operational Dashboard & KPIs):** an interactive dashboard with measurable KPIs, historical trends, system filters, status indicators and equipment-health information, all calculated from the underlying data.
 
 ## Architecture / Data Flow Diagram
 
@@ -11,6 +12,7 @@ Simulated commercial-building dataset (HVAC, Network, Access Control, CCTV, Fire
 - **Historical load:** `generateData.py` writes 24h+ of simulated events straight to the database.
 - **Live ingestion:** any source can `POST /ingest`; events are validated before being stored (the whole batch is rejected if any asset is unknown).
 - **Retrieval:** the REST API joins events with assets, systems and locations so every record comes back with full context.
+- **Dashboard:** the page at `/dashboard` calls the `/dashboard/*` endpoints, which compute KPIs, trends and health status from the `events` table at request time.
 
 ## ER Diagram
 
@@ -29,43 +31,114 @@ Design notes:
 ├── docs/
 │   ├── Data-Flow-Diagram.png
 │   └── ER-Diagram.png
-├── .env                 # local DB credentials (git-ignored, create it yourself)
+├── static/
+│   ├── dashboard.html       # dashboard page (HTML + JavaScript)
+│   ├── style.css            # dashboard CSS styles
+│   └── chart.umd.js         # Chart.js, bundled so the dashboard works offline
+├── .env                     # local DB credentials (git-ignored, create it yourself)
 ├── .gitignore
-├── App.py               # FastAPI: ingestion + retrieval endpoints
-├── generateData.py      # simulated data generator / bulk loader
+├── App.py                   # FastAPI: ingestion, retrieval, dashboard page
+├── dashboard_api.py         # KPI, trend and equipment-health endpoints
+├── generateData.py          # simulated data generator / bulk loader
+├── KPI_DEFINITIONS.md       # KPI definitions and calculation methods
 ├── README.md
 ├── requirements.txt
-└── schema.sql           # tables + indexes
+└── schema.sql               # tables + indexes
 ```
 
 ## Setup
 
-1. **Database:** create a PostgreSQL database and run the schema.sql (tables `locations`, `systems`, `assets`, `events` + indexes).
-2. **Install:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Configure the connection:**
+### 1. Database
 
-   Create a file named .env in the project root with the following content:
-   ```
-   PGHOST=localhost
-   PGPORT=5432
-   PGDATABASE=postgres
-   PGUSER=postgres
-   PGPASSWORD=your_password_here
-   ```
-   .env is listed in .gitignore, so credentials are never committed. Real environment variables (e.g. export PGPASSWORD=...) also work and take precedence over .env.
-5. **Generate sample data** (default 48h, minimum 24h):
-   ```bash
-   python generateData.py --reset
-   # options: --hours 24  --seed 42
-   ```
-6. **Run the API** (documented API endpoints via Swagger UI):
-   ```bash
-   uvicorn App:app --reload
-   ```
-   Swagger UI: http://127.0.0.1:8000/docs
+Create a PostgreSQL database and run `schema.sql` (tables `locations`, `systems`, `assets`, `events` + indexes).
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+No extra packages are needed for the dashboard; Chart.js is included in `static/`.
+
+### 3. Configure the connection
+
+Create a file named `.env` in the project root with the following content:
+
+```
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=postgres
+PGUSER=postgres
+PGPASSWORD=your_password_here
+```
+
+`.env` is listed in `.gitignore`, so credentials are never committed. Real environment variables (e.g. `export PGPASSWORD=...`) also work and take precedence over `.env`.
+
+### 4. Generate sample data
+
+Default is 48 hours of data (minimum 24h):
+
+```bash
+python generateData.py --reset
+# options: --hours 24  --seed 42
+```
+
+### 5. Run the application
+
+```bash
+uvicorn App:app --reload
+```
+
+| URL | What it is |
+|---|---|
+| http://127.0.0.1:8000/docs | Swagger UI: documented API endpoints |
+| http://127.0.0.1:8000/dashboard | Operational dashboard |
+
+## Operational Dashboard (Day 3)
+
+Open http://127.0.0.1:8000/dashboard after generating data.
+
+| Section | What it shows |
+|---|---|
+| System status | One indicator per system (Operational / Warning / Critical) with asset counts. Click a system to filter the whole page to it. |
+| Key indicators | 8 KPIs with units and context. Hover a KPI to see its definition. |
+| Trends | Events by system, HVAC average temperature, network bandwidth (average and peak), access attempts (granted vs denied). |
+| Equipment health | Per-asset status, reason, event/fault/warning/critical counts and last-seen time. Most urgent assets are listed first. |
+| Filters | System (all or one) and time window (6, 12, 24 or 48 hours). |
+
+### KPIs
+
+| KPI | Calculation |
+|---|---|
+| Total events | count of events in the window |
+| Critical alerts | count of events with severity `CRITICAL` |
+| Network availability (%) | `100 x (1 - total link downtime / (window length x network assets))` |
+| Avg bandwidth (Mbps) | mean of `BANDWIDTH_USAGE` values, with the peak shown below |
+| Access denial rate (%) | `ACCESS_DENIED / (ACCESS_GRANTED + ACCESS_DENIED)` |
+| Avg HVAC temperature (°C) | mean of temperature readings, with the number of high-temperature events below |
+| Camera offline incidents | count of `CAMERA_OFFLINE` events |
+| Active fire alarms | panels whose latest smoke/reset event is `SMOKE_DETECTED` |
+
+Full definitions, source fields, status rules and notes are in [KPI_DEFINITIONS.md](KPI_DEFINITIONS.md).
+
+### How the numbers are produced
+
+- Nothing is hardcoded: every value is calculated from the `events` table when the page loads or a filter changes.
+- The latest event timestamp in the database is used as the reference time ("now"), so the dashboard shows data whenever it was generated.
+- Asset status: an open incident (link down, smoke alarm active, camera offline) or a fault event in the last 60 minutes. System status is the worst status among its assets.
+
+### Try a live status change
+
+Ingest a link-down event for the core switch, then click **Refresh**. The Network indicator turns Critical and `SW-CORE-01` appears first in the equipment table:
+
+```bash
+TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+curl -X POST http://127.0.0.1:8000/ingest -H "Content-Type: application/json" -d '{
+  "events": [{"asset_name": "SW-CORE-01", "ts": "'"$TS"'", "event_type": "LINK_DOWN", "severity": "CRITICAL"}]
+}'
+```
+
+Resolve it by ingesting a `LINK_UP` event for the same asset.
 
 ## Simulated Data
 
@@ -101,6 +174,11 @@ GROUP BY s.type ORDER BY s.type;
 | GET | `/locations` | List locations (`building`, `floor`) |
 | GET | `/systems` | List systems |
 | GET | `/health` | Service/DB check |
+| GET | `/dashboard/summary` | KPIs (with definitions) and system status indicators |
+| GET | `/dashboard/trends` | Time series for the dashboard charts |
+| GET | `/dashboard/equipment-health` | Per-asset health status |
+
+The three `/dashboard/*` endpoints accept `hours` (1 to 168, default 24) and an optional `system_type`.
 
 ### `GET /events` filters
 
@@ -132,6 +210,9 @@ curl "http://127.0.0.1:8000/assets/1/events?from=2026-11-01T00:00:00Z&to=2026-11
 # combined
 curl "http://127.0.0.1:8000/events?system_type=ACCESS&severity=WARNING&location_id=1"
 
+# dashboard KPIs for the last 12 hours, network only
+curl "http://127.0.0.1:8000/dashboard/summary?hours=12&system_type=NETWORK"
+
 # ingest (timestamp = now, since future timestamps are rejected)
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 curl -X POST http://127.0.0.1:8000/ingest -H "Content-Type: application/json" -d '{
@@ -155,6 +236,8 @@ curl -X POST http://127.0.0.1:8000/ingest -H "Content-Type: application/json" -d
 
 ## Known Limitations / Next Steps
 
-- No authentication on the API. 
-- `generateData.py` loads directly into the DB rather than   through `/ingest`.
+- No authentication on the API or the dashboard.
+- `generateData.py` loads directly into the DB rather than through `/ingest`.
+- The dashboard refreshes on demand (Refresh button or filter change), not automatically.
+- KPI and status thresholds (such as the 60-minute status window) are fixed in `dashboard_api.py`.
 - Partitioning of `events` by time would be the next step for larger volumes.

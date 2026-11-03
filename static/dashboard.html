@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Building Operations Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>Building operations dashboard</h1>
+      <p id="ref">Loading data window…</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="sysFilter" role="group" aria-label="System filter"></div>
+      <div class="seg" id="hoursFilter" role="group" aria-label="Time window"></div>
+      <button id="refresh" type="button">Refresh</button>
+    </div>
+  </header>
+  <main>
+    <div id="msg" role="alert"></div>
+    <h2>System status</h2>
+    <div id="status"></div>
+    <h2>Key indicators</h2>
+    <div id="kpis"></div>
+    <h2>Trends</h2>
+    <div id="charts">
+      <section class="panel" id="p-events">
+        <h3>Events by system</h3>
+        <div><canvas id="c-events"></canvas></div>
+      </section>
+      <section class="panel" id="p-hvac">
+        <h3>HVAC average temperature (°C)</h3>
+        <div><canvas id="c-hvac"></canvas></div>
+      </section>
+      <section class="panel" id="p-net">
+        <h3>Network bandwidth (Mbps)</h3>
+        <div><canvas id="c-net"></canvas></div>
+      </section>
+      <section class="panel" id="p-acc">
+        <h3>Access attempts</h3>
+        <div><canvas id="c-acc"></canvas></div>
+      </section>
+    </div>
+    <h2>Equipment health</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>System</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th class="n">Events</th>
+            <th class="n">Faults</th>
+            <th class="n">Warnings</th>
+            <th class="n">Critical</th>
+            <th>Last seen</th>
+          </tr>
+        </thead>
+        <tbody id="health"></tbody>
+      </table>
+    </div>
+  </main>
+  <script src="/static/chart.umd.js"></script>
+  <script>
+    const SYSTEMS = ["HVAC", "NETWORK", "ACCESS", "CCTV", "FIRE_ALARM"];
+    const LABEL = { HVAC: "HVAC", NETWORK: "Network", ACCESS: "Access control", CCTV: "CCTV", FIRE_ALARM: "Fire alarm" };
+    const COLOR = { HVAC: "#2a7f8e", NETWORK: "#4e5ba6", ACCESS: "#c27a2c", CCTV: "#7a5c99", FIRE_ALARM: "#b5473a" };
+    const state = { system: "", hours: 24 };
+    const charts = {};
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    function seg(el, items, key, onPick) {
+      el.innerHTML = "";
+      items.forEach(([value, text]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = text;
+        b.setAttribute("aria-pressed", String(state[key] === value));
+        b.onclick = () => { state[key] = value; onPick(); };
+        el.appendChild(b);
+      });
+    }
+    function drawControls() {
+      seg($("sysFilter"), [["", "All systems"], ...SYSTEMS.map(s => [s, LABEL[s]])], "system", load);
+      seg($("hoursFilter"), [[6, "6 h"], [12, "12 h"], [24, "24 h"], [48, "48 h"]], "hours", load);
+    }
+    async function api(path) {
+      const q = new URLSearchParams({ hours: state.hours });
+      if (state.system) q.set("system_type", state.system);
+      const r = await fetch(`/dashboard/${path}?${q}`);
+      if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+      return r.json();
+    }
+    const fmtTime = (iso, long) => new Date(iso).toLocaleString([], long
+      ? { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
+
+    function drawStatus(systems) {
+      $("status").innerHTML = "";
+      systems.forEach(s => {
+        const b = document.createElement("button");
+        b.className = `sys ${s.status}`;
+        b.setAttribute("aria-pressed", String(state.system === s.type));
+        b.title = "Show only this system";
+        b.innerHTML = `<b>${LABEL[s.type]}</b><div class="st ${s.status}">${s.status === "OK" ? "Operational" : s.status === "UNKNOWN" ? "No data" : s.status[0] + s.status.slice(1).toLowerCase()}</div>
+      <small>${s.assets} assets: ${s.ok} ok, ${s.warning} warning, ${s.critical} critical</small>`;
+        b.onclick = () => { state.system = state.system === s.type ? "" : s.type; load(); };
+        $("status").appendChild(b);
+      });
+    }
+    function drawKpis(kpis) {
+      $("kpis").innerHTML = kpis.map(k => `<div class="kpi" title="${esc(k.definition)}"><span>${esc(k.label)}</span>
+    <strong>${k.value === null ? "n/a" : esc(k.value.toLocaleString())}${k.value !== null && k.unit ? `<i>${esc(k.unit)}</i>` : ""}</strong>
+    <small>${esc(k.sub || "\u00a0")}</small></div>`).join("");
+    }
+    function chart(id, type, labels, datasets, opts = {}) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart($(id), {
+        type, data: { labels, datasets }, options: {
+          responsive: true, maintainAspectRatio: false, animation: false, spanGaps: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: { legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 10 } } },
+          scales: { x: { stacked: !!opts.stacked, ticks: { maxTicksLimit: 10, maxRotation: 0 } }, y: { stacked: !!opts.stacked, beginAtZero: opts.zero !== false } },
+          elements: { point: { radius: 0 }, line: { borderWidth: 2 } }
+        }
+      });
+    }
+    function drawTrends(t) {
+      const long = state.hours > 24;
+      const labels = t.buckets.map(b => fmtTime(b, long));
+      const sys = Object.keys(t.events_by_system);
+      chart("c-events", "bar", labels, sys.map(s => ({ label: LABEL[s], data: t.events_by_system[s], backgroundColor: COLOR[s] })), { stacked: true });
+      chart("c-hvac", "line", labels, [{ label: "Avg temperature", data: t.hvac_avg_temp, borderColor: COLOR.HVAC }], { zero: false });
+      chart("c-net", "line", labels, [{ label: "Average", data: t.bandwidth_avg, borderColor: COLOR.NETWORK },
+      { label: "Peak", data: t.bandwidth_peak, borderColor: COLOR.NETWORK, borderDash: [5, 4] }]);
+      chart("c-acc", "bar", labels, [{ label: "Granted", data: t.access_granted, backgroundColor: "#2e7d4f" },
+      { label: "Denied", data: t.access_denied, backgroundColor: "#b3261e" }], { stacked: true });
+      const show = (id, ok) => $(id).classList.toggle("hidden", !ok);
+      show("p-hvac", !state.system || state.system === "HVAC");
+      show("p-net", !state.system || state.system === "NETWORK");
+      show("p-acc", !state.system || state.system === "ACCESS");
+    }
+    function drawHealth(h) {
+      const now = new Date(h.window.to);
+      $("health").innerHTML = h.items.map(a => {
+        const mins = a.last_seen ? Math.round((now - new Date(a.last_seen)) / 60000) : null;
+        const seen = mins === null ? "never" : mins < 1 ? "at reference time" : mins < 120 ? `${mins} min before` : `${(mins / 60).toFixed(1)} h before`;
+        return `<tr><td>${esc(a.name)}</td><td>${esc(LABEL[a.system_type])}</td><td>${esc(a.building)}, floor ${a.floor}, ${esc(a.zone)}</td>
+      <td><span class="pill ${a.status}">${a.status}</span></td><td>${esc(a.reason)}</td>
+      <td class="n">${a.events}</td><td class="n">${a.faults}</td><td class="n">${a.warnings}</td><td class="n">${a.criticals}</td><td>${seen}</td></tr>`;
+      }).join("") || `<tr><td colspan="10">No assets match this filter.</td></tr>`;
+    }
+    async function load() {
+      drawControls();
+      $("msg").style.display = "none";
+      try {
+        const [sum, trends, health] = await Promise.all([api("summary"), api("trends"), api("equipment-health")]);
+        $("ref").textContent = `Data window: ${fmtTime(sum.window.from, true)} to ${fmtTime(sum.window.to, true)} (the latest event in the database is treated as "now")`;
+        drawStatus(sum.systems); drawKpis(sum.kpis); drawTrends(trends); drawHealth(health);
+      } catch (e) {
+        $("msg").textContent = `Could not load dashboard data (${e.message}). Check that the API is running and the database contains events (run generateData.py).`;
+        $("msg").style.display = "block";
+      }
+    }
+    $("refresh").onclick = load;
+    load();
+  </script>
+</body>
+
+</html>
