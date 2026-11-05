@@ -157,7 +157,7 @@ The widget loads its own stylesheet and follows the dashboard's light/dark CSS v
 - Python 3.10+
 - PostgreSQL with the project schema (`events`, `assets`, `systems`, `locations`, `alerts`)
 - [Ollama](https://ollama.com) running locally with the model configured in `ai_explainer.py` (`OLLAMA_MODEL`)
-- Python packages: `fastapi`, `uvicorn`, `pydantic`, `psycopg`, `requests`
+- Python packages: `fastapi`, `uvicorn[standard]`, `pydantic`, `psycopg2-binary`, `python-dotenv`, `python-socketio`
 
 ### Wire the router into the API
 
@@ -176,7 +176,7 @@ status logic and fault definitions from them. Serve the widget files from the st
 
 ```bash
 ollama serve                              # in one terminal
-uvicorn main:app --reload --port 8000     # in another (use your app's module name)
+uvicorn App:asgi_app --reload --port 8000     # in another (use your app's module name)
 ```
 
 Open the dashboard (widget) or `/static/chat.html` (standalone page). Interactive API docs are at `/docs`.
@@ -196,22 +196,21 @@ Run `seed_events.py` first, then `seed_history.py`. `ENERGY_READING` must be an 
 
 ## Testing
 
-`tests/test_chat.py` is an end-to-end test against the **running API and real database** (no stubs). It asks 20
+`test_chat.py` is an end-to-end test against the **running API and real database** (no stubs). It asks 20
 questions (the six mandatory ones, KPI, history and out-of-scope questions, each in English and Arabic), in both
 deterministic mode and LLM mode.
 
 ```bash
-python tests/test_chat.py                  # deterministic + LLM
-python tests/test_chat.py --no-llm         # deterministic only (fast)
-python tests/test_chat.py --energy missing # expect the honest "no energy data" answer
-python tests/test_chat.py --base http://host:8000
+python test_chat.py
+python test_chat.py --no-llm missing
+python test_chat.py --energy http://host:8000
 ```
 
 Checks per question: expected intent, answer language matches the question, `grounding.passed`, citations present and
 all existing in `sources`, expected `data_sufficient`, low confidence when data is insufficient, camera availability
 percentage present, and an explicit admission when energy data is missing. The exit code is 1 if any check fails.
 
-Results are written to `tests/test_results.json` and `tests/TEST_RESULTS.md`.
+Results are written to `test_results.json` and `TEST_RESULTS.md`.
 
 ### Latest run (2026-11-05, `--energy missing`)
 

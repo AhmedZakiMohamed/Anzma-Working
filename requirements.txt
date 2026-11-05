@@ -4,4 +4,3 @@ psycopg2-binary>=2.9
 pydantic>=2.5
 python-dotenv
 python-socketio>=5.11.0
-uvicorn>=0.29
