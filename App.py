@@ -7,6 +7,7 @@ Run:
 Docs (Swagger): http://127.0.0.1:8000/docs
 """
 import os
+import socketio
 from dotenv import load_dotenv
 load_dotenv()
 from contextlib import contextmanager
@@ -39,7 +40,8 @@ app = FastAPI(
 
 pool: Optional[SimpleConnectionPool] = None
 
-
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+asgi_app = socketio.ASGIApp(sio, other_asgi_app=app)
 @app.on_event("startup")
 def startup():
     global pool
@@ -268,6 +270,9 @@ def get_asset_events(
                         ts_to=ts_to, limit=limit, offset=offset, order=order)
 
 
+# وعشان تبعت ألرت جديد أول ما يتخلق، نادِ الدالة دي:
+async def push_alert(alert: dict):
+    await sio.emit("new_alert", alert)
 @app.get("/health", tags=["Meta"])
 def health():
     with db() as cur:
@@ -284,9 +289,27 @@ from fastapi.staticfiles import StaticFiles
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
+@app.post("/debug/fake-alert", include_in_schema=False)
+async def fake_alert(severity: str = "CRITICAL", system_type: str = "FIRE_ALARM"):
+    import random
+    from datetime import datetime, timezone
+    a = {
+        "id": random.randint(10**6, 10**7), 
+        "severity": severity, 
+        "system_type": system_type,
+        "title": "Test alert (تجربة حيّة)", 
+        "summary": "اختبار مباشر للـ Socket.io والـ Toast", 
+        "asset_name": "TEST-01",
+        "zone": "Lobby", 
+        "first_ts": datetime.now(timezone.utc).isoformat()
+    }
+    await push_alert(a)
+    return a
 
 @app.get("/dashboard", include_in_schema=False)
 def dashboard_page():
     return FileResponse(os.path.join(BASE_DIR, "static", "dashboard.html"))    
 from alerts_api import create_alerts_router
-app.include_router(create_alerts_router(db))
+app.include_router(create_alerts_router(db, push_alert))
+from chat_api import create_chat_router
+app.include_router(create_chat_router(db))

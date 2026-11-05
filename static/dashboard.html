@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Building Operations Dashboard</title>
   <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/chat-widget.js" defer></script>
 </head>
 
 <body>
@@ -20,8 +22,41 @@
       <button id="refresh" type="button">Refresh</button>
     </div>
   </header>
+
+  <!-- مكان شريط التنبيهات المنبثق (Toasts) ومركز التنبيهات (Alert Center) -->
+  <div id="toasts" aria-live="assertive"></div>
+
   <main>
     <div id="msg" role="alert"></div>
+
+    <!-- مركز التنبيهات (Alert Center Widget) الجديد -->
+    <section id="alertCenter" class="panel ac">
+      <div class="ac-head">
+        <h3>Alert center <span id="acCount" class="ac-count">0</span></h3>
+        <div class="ac-tools">
+          <select id="acSeverity" aria-label="Severity filter">
+            <option value="">All severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="WARNING">Warning</option>
+            <option value="INFO">Info</option>
+          </select>
+          <select id="acSystem" aria-label="System filter">
+            <option value="">All systems</option>
+            <option value="HVAC">HVAC</option>
+            <option value="NETWORK">Network</option>
+            <option value="ACCESS">Access control</option>
+            <option value="CCTV">CCTV</option>
+            <option value="FIRE_ALARM">Fire alarm</option>
+          </select>
+          <button id="acSound" type="button" aria-pressed="true" title="Toggle sound">🔔 Sound on</button>
+          <button id="acClear" type="button">Clear</button>
+          <span id="acConn" class="ac-conn off">offline</span>
+        </div>
+      </div>
+      <ul id="acList"></ul>
+      <p id="acEmpty" class="ac-empty">No alerts match the filters.</p>
+    </section>
+
     <h2>System status</h2>
     <div id="status"></div>
     <h2>Key indicators</h2>
@@ -66,109 +101,1174 @@
       </table>
     </div>
   </main>
+
   <script src="/static/chart.umd.js"></script>
   <script>
+    /* =========================================================
+       1. Dashboard Configuration
+    ========================================================= */
+
     const SYSTEMS = ["HVAC", "NETWORK", "ACCESS", "CCTV", "FIRE_ALARM"];
-    const LABEL = { HVAC: "HVAC", NETWORK: "Network", ACCESS: "Access control", CCTV: "CCTV", FIRE_ALARM: "Fire alarm" };
-    const COLOR = { HVAC: "#2a7f8e", NETWORK: "#4e5ba6", ACCESS: "#c27a2c", CCTV: "#7a5c99", FIRE_ALARM: "#b5473a" };
-    const state = { system: "", hours: 24 };
+
+    const LABEL = {
+      HVAC: "HVAC",
+      NETWORK: "Network",
+      ACCESS: "Access control",
+      CCTV: "CCTV",
+      FIRE_ALARM: "Fire alarm"
+    };
+
+    const COLOR = {
+      HVAC: "#2a7f8e",
+      NETWORK: "#4e5ba6",
+      ACCESS: "#c27a2c",
+      CCTV: "#7a5c99",
+      FIRE_ALARM: "#b5473a"
+    };
+
+    const state = {
+      system: "",
+      hours: 24
+    };
+
     const charts = {};
+
     const $ = id => document.getElementById(id);
-    const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    const esc = value =>
+      String(value ?? "").replace(/[&<>"]/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;"
+      }[char]));
+
+    const fmtTime = (iso, long = false) => {
+      const date = new Date(iso);
+
+      if (Number.isNaN(date.getTime())) return "Invalid date";
+
+      return date.toLocaleString([], long
+        ? {
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+        : {
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      );
+    };
+
+
+    /* =========================================================
+       2. Dashboard Filters
+    ========================================================= */
 
     function seg(el, items, key, onPick) {
       el.innerHTML = "";
+
       items.forEach(([value, text]) => {
-        const b = document.createElement("button");
-        b.type = "button"; b.textContent = text;
-        b.setAttribute("aria-pressed", String(state[key] === value));
-        b.onclick = () => { state[key] = value; onPick(); };
-        el.appendChild(b);
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.textContent = text;
+
+        button.setAttribute(
+          "aria-pressed",
+          String(state[key] === value)
+        );
+
+        button.onclick = () => {
+          if (state[key] === value) return;
+
+          state[key] = value;
+          onPick();
+        };
+
+        el.appendChild(button);
       });
     }
+
     function drawControls() {
-      seg($("sysFilter"), [["", "All systems"], ...SYSTEMS.map(s => [s, LABEL[s]])], "system", load);
-      seg($("hoursFilter"), [[6, "6 h"], [12, "12 h"], [24, "24 h"], [48, "48 h"]], "hours", load);
+      seg(
+        $("sysFilter"),
+        [
+          ["", "All systems"],
+          ...SYSTEMS.map(system => [system, LABEL[system]])
+        ],
+        "system",
+        load
+      );
+
+      seg(
+        $("hoursFilter"),
+        [
+          [6, "6 h"],
+          [12, "12 h"],
+          [24, "24 h"],
+          [48, "48 h"]
+        ],
+        "hours",
+        load
+      );
     }
+
+
+    /* =========================================================
+       3. API Requests
+    ========================================================= */
+
     async function api(path) {
-      const q = new URLSearchParams({ hours: state.hours });
-      if (state.system) q.set("system_type", state.system);
-      const r = await fetch(`/dashboard/${path}?${q}`);
-      if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
-      return r.json();
+      const query = new URLSearchParams({
+        hours: state.hours
+      });
+
+      if (state.system) {
+        query.set("system_type", state.system);
+      }
+
+      const response = await fetch(
+        `/dashboard/${path}?${query}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`${path}: HTTP ${response.status}`);
+      }
+
+      return response.json();
     }
-    const fmtTime = (iso, long) => new Date(iso).toLocaleString([], long
-      ? { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
+
+
+    /* =========================================================
+       4. System Status
+    ========================================================= */
 
     function drawStatus(systems) {
-      $("status").innerHTML = "";
-      systems.forEach(s => {
-        const b = document.createElement("button");
-        b.className = `sys ${s.status}`;
-        b.setAttribute("aria-pressed", String(state.system === s.type));
-        b.title = "Show only this system";
-        b.innerHTML = `<b>${LABEL[s.type]}</b><div class="st ${s.status}">${s.status === "OK" ? "Operational" : s.status === "UNKNOWN" ? "No data" : s.status[0] + s.status.slice(1).toLowerCase()}</div>
-      <small>${s.assets} assets: ${s.ok} ok, ${s.warning} warning, ${s.critical} critical</small>`;
-        b.onclick = () => { state.system = state.system === s.type ? "" : s.type; load(); };
-        $("status").appendChild(b);
+      const container = $("status");
+
+      container.innerHTML = "";
+
+      systems.forEach(system => {
+        const button = document.createElement("button");
+
+        const status = system.status || "UNKNOWN";
+
+        button.className = `sys ${esc(status)}`;
+
+        button.setAttribute(
+          "aria-pressed",
+          String(state.system === system.type)
+        );
+
+        button.title = "Show only this system";
+
+        const statusLabel =
+          status === "OK"
+            ? "Operational"
+            : status === "UNKNOWN"
+              ? "No data"
+              : status.charAt(0) + status.slice(1).toLowerCase();
+
+        button.innerHTML = `
+        <b>${esc(LABEL[system.type] || system.type)}</b>
+
+        <div class="st ${esc(status)}">
+          ${esc(statusLabel)}
+        </div>
+
+        <small>
+          ${esc(system.assets)} assets:
+          ${esc(system.ok)} ok,
+          ${esc(system.warning)} warning,
+          ${esc(system.critical)} critical
+        </small>
+      `;
+
+        button.onclick = () => {
+          state.system =
+            state.system === system.type
+              ? ""
+              : system.type;
+
+          load();
+        };
+
+        container.appendChild(button);
       });
     }
+
+
+    /* =========================================================
+       5. KPI Cards
+    ========================================================= */
+
     function drawKpis(kpis) {
-      $("kpis").innerHTML = kpis.map(k => `<div class="kpi" title="${esc(k.definition)}"><span>${esc(k.label)}</span>
-    <strong>${k.value === null ? "n/a" : esc(k.value.toLocaleString())}${k.value !== null && k.unit ? `<i>${esc(k.unit)}</i>` : ""}</strong>
-    <small>${esc(k.sub || "\u00a0")}</small></div>`).join("");
+      $("kpis").innerHTML = kpis.map(kpi => `
+      <div class="kpi" title="${esc(kpi.definition)}">
+
+        <span>${esc(kpi.label)}</span>
+
+        <strong>
+          ${kpi.value === null || kpi.value === undefined
+          ? "n/a"
+          : esc(
+            typeof kpi.value === "number"
+              ? kpi.value.toLocaleString()
+              : kpi.value
+          )
+        }
+
+          ${kpi.value !== null &&
+          kpi.value !== undefined &&
+          kpi.unit
+          ? `<i>${esc(kpi.unit)}</i>`
+          : ""
+        }
+        </strong>
+
+        <small>${esc(kpi.sub || "\u00a0")}</small>
+
+      </div>
+    `).join("");
     }
+
+
+    /* =========================================================
+       6. Chart Configuration
+    ========================================================= */
+
     function chart(id, type, labels, datasets, opts = {}) {
-      if (charts[id]) charts[id].destroy();
-      charts[id] = new Chart($(id), {
-        type, data: { labels, datasets }, options: {
-          responsive: true, maintainAspectRatio: false, animation: false, spanGaps: true,
-          interaction: { mode: "index", intersect: false },
-          plugins: { legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 10 } } },
-          scales: { x: { stacked: !!opts.stacked, ticks: { maxTicksLimit: 10, maxRotation: 0 } }, y: { stacked: !!opts.stacked, beginAtZero: opts.zero !== false } },
-          elements: { point: { radius: 0 }, line: { borderWidth: 2 } }
+      const canvas = $(id);
+
+      if (!canvas) {
+        console.warn(`Chart element not found: ${id}`);
+        return;
+      }
+
+      if (charts[id]) {
+        charts[id].destroy();
+      }
+
+      charts[id] = new Chart(canvas, {
+        type,
+
+        data: {
+          labels,
+          datasets
+        },
+
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          spanGaps: true,
+
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+
+          plugins: {
+            legend: {
+              display: datasets.length > 1,
+              position: "bottom",
+
+              labels: {
+                boxWidth: 10
+              }
+            }
+          },
+
+          scales: {
+            x: {
+              stacked: !!opts.stacked,
+
+              ticks: {
+                maxTicksLimit: 10,
+                maxRotation: 0
+              }
+            },
+
+            y: {
+              stacked: !!opts.stacked,
+              beginAtZero: opts.zero !== false
+            }
+          },
+
+          elements: {
+            point: {
+              radius: 0
+            },
+
+            line: {
+              borderWidth: 2
+            }
+          }
         }
       });
     }
-    function drawTrends(t) {
+
+
+    /* =========================================================
+       7. Dashboard Trends
+    ========================================================= */
+
+    function drawTrends(trends) {
       const long = state.hours > 24;
-      const labels = t.buckets.map(b => fmtTime(b, long));
-      const sys = Object.keys(t.events_by_system);
-      chart("c-events", "bar", labels, sys.map(s => ({ label: LABEL[s], data: t.events_by_system[s], backgroundColor: COLOR[s] })), { stacked: true });
-      chart("c-hvac", "line", labels, [{ label: "Avg temperature", data: t.hvac_avg_temp, borderColor: COLOR.HVAC }], { zero: false });
-      chart("c-net", "line", labels, [{ label: "Average", data: t.bandwidth_avg, borderColor: COLOR.NETWORK },
-      { label: "Peak", data: t.bandwidth_peak, borderColor: COLOR.NETWORK, borderDash: [5, 4] }]);
-      chart("c-acc", "bar", labels, [{ label: "Granted", data: t.access_granted, backgroundColor: "#2e7d4f" },
-      { label: "Denied", data: t.access_denied, backgroundColor: "#b3261e" }], { stacked: true });
-      const show = (id, ok) => $(id).classList.toggle("hidden", !ok);
-      show("p-hvac", !state.system || state.system === "HVAC");
-      show("p-net", !state.system || state.system === "NETWORK");
-      show("p-acc", !state.system || state.system === "ACCESS");
+
+      const labels = trends.buckets.map(bucket =>
+        fmtTime(bucket, long)
+      );
+
+      const systems = Object.keys(
+        trends.events_by_system || {}
+      );
+
+      // Events by system
+      chart(
+        "c-events",
+        "bar",
+        labels,
+
+        systems.map(system => ({
+          label: LABEL[system] || system,
+
+          data: trends.events_by_system[system],
+
+          backgroundColor: COLOR[system] || "#777777"
+        })),
+
+        {
+          stacked: true
+        }
+      );
+
+
+      // HVAC temperature
+      chart(
+        "c-hvac",
+        "line",
+        labels,
+
+        [{
+          label: "Avg temperature",
+          data: trends.hvac_avg_temp,
+          borderColor: COLOR.HVAC
+        }],
+
+        {
+          zero: false
+        }
+      );
+
+
+      // Network bandwidth
+      chart(
+        "c-net",
+        "line",
+        labels,
+
+        [
+          {
+            label: "Average",
+            data: trends.bandwidth_avg,
+            borderColor: COLOR.NETWORK
+          },
+
+          {
+            label: "Peak",
+            data: trends.bandwidth_peak,
+            borderColor: COLOR.NETWORK,
+            borderDash: [5, 4]
+          }
+        ]
+      );
+
+
+      // Access control
+      chart(
+        "c-acc",
+        "bar",
+        labels,
+
+        [
+          {
+            label: "Granted",
+            data: trends.access_granted,
+            backgroundColor: "#2e7d4f"
+          },
+
+          {
+            label: "Denied",
+            data: trends.access_denied,
+            backgroundColor: "#b3261e"
+          }
+        ],
+
+        {
+          stacked: true
+        }
+      );
+
+
+      // Show charts based on selected system
+      const show = (id, visible) => {
+        const element = $(id);
+
+        if (element) {
+          element.classList.toggle("hidden", !visible);
+        }
+      };
+
+      show(
+        "p-hvac",
+        !state.system || state.system === "HVAC"
+      );
+
+      show(
+        "p-net",
+        !state.system || state.system === "NETWORK"
+      );
+
+      show(
+        "p-acc",
+        !state.system || state.system === "ACCESS"
+      );
     }
-    function drawHealth(h) {
-      const now = new Date(h.window.to);
-      $("health").innerHTML = h.items.map(a => {
-        const mins = a.last_seen ? Math.round((now - new Date(a.last_seen)) / 60000) : null;
-        const seen = mins === null ? "never" : mins < 1 ? "at reference time" : mins < 120 ? `${mins} min before` : `${(mins / 60).toFixed(1)} h before`;
-        return `<tr><td>${esc(a.name)}</td><td>${esc(LABEL[a.system_type])}</td><td>${esc(a.building)}, floor ${a.floor}, ${esc(a.zone)}</td>
-      <td><span class="pill ${a.status}">${a.status}</span></td><td>${esc(a.reason)}</td>
-      <td class="n">${a.events}</td><td class="n">${a.faults}</td><td class="n">${a.warnings}</td><td class="n">${a.criticals}</td><td>${seen}</td></tr>`;
-      }).join("") || `<tr><td colspan="10">No assets match this filter.</td></tr>`;
+
+
+    /* =========================================================
+       8. Equipment Health Table
+    ========================================================= */
+
+    function drawHealth(health) {
+      const referenceTime = new Date(health.window.to);
+
+      $("health").innerHTML = health.items.map(asset => {
+
+        const lastSeen = asset.last_seen
+          ? new Date(asset.last_seen)
+          : null;
+
+        const mins = lastSeen &&
+          !Number.isNaN(lastSeen.getTime())
+          ? Math.round(
+            (referenceTime - lastSeen) / 60000
+          )
+          : null;
+
+        const seen =
+          mins === null
+            ? "never"
+            : mins < 1
+              ? "at reference time"
+              : mins < 120
+                ? `${mins} min before`
+                : `${(mins / 60).toFixed(1)} h before`;
+
+        return `
+        <tr>
+
+          <td>${esc(asset.name)}</td>
+
+          <td>
+            ${esc(LABEL[asset.system_type] || asset.system_type)}
+          </td>
+
+          <td>
+            ${esc(asset.building)},
+            floor ${esc(asset.floor)},
+            ${esc(asset.zone)}
+          </td>
+
+          <td>
+            <span class="pill ${esc(asset.status)}">
+              ${esc(asset.status)}
+            </span>
+          </td>
+
+          <td>${esc(asset.reason)}</td>
+
+          <td class="n">${esc(asset.events)}</td>
+
+          <td class="n">${esc(asset.faults)}</td>
+
+          <td class="n">${esc(asset.warnings)}</td>
+
+          <td class="n">${esc(asset.criticals)}</td>
+
+          <td>${esc(seen)}</td>
+
+        </tr>
+      `;
+
+      }).join("") || `
+      <tr>
+        <td colspan="10">
+          No assets match this filter.
+        </td>
+      </tr>
+    `;
     }
+
+
+    /* =========================================================
+       9. Load Dashboard
+    ========================================================= */
+
+    let dashboardRequestId = 0;
+
     async function load() {
+      const requestId = ++dashboardRequestId;
+
       drawControls();
+
       $("msg").style.display = "none";
+
       try {
-        const [sum, trends, health] = await Promise.all([api("summary"), api("trends"), api("equipment-health")]);
-        $("ref").textContent = `Data window: ${fmtTime(sum.window.from, true)} to ${fmtTime(sum.window.to, true)} (the latest event in the database is treated as "now")`;
-        drawStatus(sum.systems); drawKpis(sum.kpis); drawTrends(trends); drawHealth(health);
-      } catch (e) {
-        $("msg").textContent = `Could not load dashboard data (${e.message}). Check that the API is running and the database contains events (run generateData.py).`;
+
+        const [summary, trends, health] = await Promise.all([
+          api("summary"),
+          api("trends"),
+          api("equipment-health")
+        ]);
+
+        // Ignore outdated responses
+        if (requestId !== dashboardRequestId) {
+          return;
+        }
+
+        $("ref").textContent =
+          `Data window: ${fmtTime(summary.window.from, true)} to ${fmtTime(summary.window.to, true)} (the latest event in the database is treated as "now")`;
+
+        drawStatus(summary.systems);
+
+        drawKpis(summary.kpis);
+
+        drawTrends(trends);
+
+        drawHealth(health);
+
+      } catch (error) {
+
+        if (requestId !== dashboardRequestId) {
+          return;
+        }
+
+        console.error("Dashboard loading error:", error);
+
+        $("msg").textContent =
+          `Could not load dashboard data (${error.message}). Check that the API is running and the database contains events (run generateData.py).`;
+
         $("msg").style.display = "block";
       }
     }
+
+
+    /* =========================================================
+       10. Alert Center Configuration
+    ========================================================= */
+
+    const AC = {
+      alerts: [],
+      max: 200,
+
+      filters: {
+        severity: "",
+        system: ""
+      },
+
+      sound: true,
+
+      seen: new Set()
+    };
+
+
+    /* =========================================================
+       11. Alert Sound (Web Audio API)
+    ========================================================= */
+
+    let audioCtx = null;
+
+    const TONES = {
+      CRITICAL: [880, 180, 3],
+      WARNING: [660, 150, 2],
+      INFO: [520, 120, 1]
+    };
+
+
+    function unlockAudio() {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) {
+        return;
+      }
+
+      try {
+        if (!audioCtx) {
+          audioCtx = new AudioContextClass();
+        }
+
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume().catch(error => {
+            console.warn("Audio resume failed:", error);
+          });
+        }
+
+      } catch (error) {
+        console.warn("Audio initialization failed:", error);
+      }
+    }
+
+
+    // Unlock audio after user interaction
+    ["click", "keydown", "touchstart"].forEach(event => {
+      document.addEventListener(
+        event,
+        unlockAudio,
+        {
+          once: false,
+          passive: true
+        }
+      );
+    });
+
+
+    function beep(severity) {
+      if (
+        !AC.sound ||
+        !audioCtx ||
+        audioCtx.state !== "running"
+      ) {
+        return;
+      }
+
+      const [frequency, duration, times] =
+        TONES[severity] || TONES.INFO;
+
+      for (let i = 0; i < times; i++) {
+
+        const startTime =
+          audioCtx.currentTime +
+          i * (duration + 80) / 1000;
+
+        const oscillator = audioCtx.createOscillator();
+
+        const gain = audioCtx.createGain();
+
+        oscillator.type =
+          severity === "CRITICAL"
+            ? "square"
+            : "sine";
+
+        oscillator.frequency.value = frequency;
+
+        gain.gain.setValueAtTime(0.0001, startTime);
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.25,
+          startTime + 0.01
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          startTime + duration / 1000
+        );
+
+        oscillator.connect(gain).connect(
+          audioCtx.destination
+        );
+
+        oscillator.start(startTime);
+
+        oscillator.stop(
+          startTime + duration / 1000 + 0.02
+        );
+      }
+    }
+
+
+    /* =========================================================
+       12. Alert Filters
+    ========================================================= */
+
+    const passes = alert => {
+
+      return (
+        (!AC.filters.severity ||
+          alert.severity === AC.filters.severity) &&
+
+        (!AC.filters.system ||
+          alert.system_type === AC.filters.system)
+      );
+
+    };
+
+
+    /* =========================================================
+       13. Render Alerts
+    ========================================================= */
+
+    function renderAlerts() {
+
+      const list = AC.alerts.filter(passes);
+
+      $("acList").innerHTML = list.map(alert => `
+      <li class="al ${esc(alert.severity)}${alert._fresh ? " fresh" : ""}"
+          data-id="${esc(alert.id)}">
+
+        <span class="al-sev">
+          ${esc(alert.severity)}
+        </span>
+
+        <span class="al-title">
+          ${esc(alert.title)}
+        </span>
+
+        <span class="al-time">
+          ${alert.first_ts
+          ? esc(fmtTime(alert.first_ts, true))
+          : ""}
+        </span>
+
+        <span class="al-meta">
+          ${esc(LABEL[alert.system_type] || alert.system_type)}
+          · ${esc(alert.asset_name)}
+
+          ${alert.zone
+          ? " · " + esc(alert.zone)
+          : ""}
+
+          ${alert.summary
+          ? " — " + esc(alert.summary)
+          : ""}
+        </span>
+
+      </li>
+    `).join("");
+
+      $("acCount").textContent = list.length;
+
+      $("acEmpty").classList.toggle(
+        "show",
+        list.length === 0
+      );
+    }
+
+
+    /* =========================================================
+       14. Alert Filter Events
+    ========================================================= */
+
+    $("acSeverity").onchange = event => {
+
+      AC.filters.severity = event.target.value;
+
+      renderAlerts();
+    };
+
+
+    $("acSystem").onchange = event => {
+
+      AC.filters.system = event.target.value;
+
+      renderAlerts();
+    };
+
+
+    $("acClear").onclick = () => {
+
+      AC.alerts = [];
+
+      AC.seen.clear();
+
+      renderAlerts();
+    };
+
+
+    $("acSound").onclick = event => {
+
+      AC.sound = !AC.sound;
+
+      event.currentTarget.setAttribute(
+        "aria-pressed",
+        String(AC.sound)
+      );
+
+      event.currentTarget.textContent =
+        AC.sound
+          ? "🔔 Sound on"
+          : "🔕 Sound off";
+
+      if (AC.sound) {
+        unlockAudio();
+      }
+    };
+
+
+    /* =========================================================
+       15. Alert Toast Notifications
+    ========================================================= */
+
+    function showToast(alert) {
+
+      const toast = document.createElement("div");
+
+      toast.className = `toast ${esc(alert.severity)}`;
+
+      toast.setAttribute(
+        "role",
+        alert.severity === "CRITICAL"
+          ? "alert"
+          : "status"
+      );
+
+      toast.innerHTML = `
+
+      <div>
+
+        <b>
+          ${esc(alert.severity)}
+          · ${esc(alert.title)}
+        </b>
+
+        <small>
+          ${esc(LABEL[alert.system_type] || alert.system_type)}
+          · ${esc(alert.asset_name)}
+
+          ${alert.zone
+          ? " · " + esc(alert.zone)
+          : ""}
+        </small>
+
+      </div>
+
+      <button type="button" aria-label="Dismiss">
+        ×
+      </button>
+
+    `;
+
+
+      const close = () => {
+
+        if (!toast.isConnected) return;
+
+        toast.classList.add("out");
+
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+
+      };
+
+
+      toast.querySelector("button").onclick = close;
+
+      $("toasts").prepend(toast);
+
+
+      // Keep maximum 4 visible notifications
+      while ($("toasts").children.length > 4) {
+
+        $("toasts").lastChild.remove();
+
+      }
+
+
+      // Critical alerts remain until manually dismissed
+      // Automatically dismiss all alerts after 8 seconds
+      setTimeout(close, 5000);
+      // if (alert.severity !== "CRITICAL") {
+
+      //   setTimeout(close, 8000);
+
+      // }
+    }
+
+
+    /* =========================================================
+       16. Handle New Real-Time Alerts
+    ========================================================= */
+
+    function onNewAlert(alert) {
+
+      if (
+        !alert ||
+        alert.id == null ||
+        AC.seen.has(alert.id)
+      ) {
+        return;
+      }
+
+
+      // Prevent duplicate alerts
+      AC.seen.add(alert.id);
+
+
+      // Mark as fresh
+      alert._fresh = true;
+
+
+      // Add newest alert at the beginning
+      AC.alerts.unshift(alert);
+
+
+      // Keep maximum 200 alerts
+      if (AC.alerts.length > AC.max) {
+
+        const removed = AC.alerts.splice(AC.max);
+
+        removed.forEach(item => {
+          AC.seen.delete(item.id);
+        });
+
+      }
+
+
+      // Render updated alert list
+      renderAlerts();
+
+
+      // Remove fresh highlight after 6 seconds
+      setTimeout(() => {
+
+        alert._fresh = false;
+
+        renderAlerts();
+
+      }, 6000);
+
+
+      // Sound and toast only if alert matches filters
+      if (passes(alert)) {
+
+        beep(alert.severity);
+
+        showToast(alert);
+
+      }
+
+
+      /*
+        Important:
+        Do not call load() here.
+  
+        Alert Center is independent from Dashboard charts.
+        This avoids sending 3 additional API requests
+        every time a new alert arrives.
+      */
+    }
+
+
+    /* =========================================================
+       17. Load Existing Alerts
+    ========================================================= */
+
+    async function loadInitialAlerts() {
+
+      try {
+
+        const response = await fetch("/alerts?limit=50");
+
+        if (!response.ok) {
+
+          throw new Error(
+            `Alerts API: HTTP ${response.status}`
+          );
+
+        }
+
+        const data = await response.json();
+
+        const items = Array.isArray(data.items)
+          ? data.items
+          : [];
+
+
+        // Sort newest first
+        items.sort((a, b) => {
+
+          const timeA = new Date(
+            a.first_ts || 0
+          ).getTime();
+
+          const timeB = new Date(
+            b.first_ts || 0
+          ).getTime();
+
+          return timeB - timeA;
+
+        });
+
+
+        items.forEach(alert => {
+
+          if (
+            alert.id == null ||
+            AC.seen.has(alert.id)
+          ) {
+            return;
+          }
+
+          AC.seen.add(alert.id);
+
+          AC.alerts.push(alert);
+
+        });
+
+
+        // Respect maximum alert limit
+        AC.alerts = AC.alerts.slice(0, AC.max);
+
+
+        // Render initial alerts
+        renderAlerts();
+
+      } catch (error) {
+
+        console.error(
+          "Failed to load initial alerts:",
+          error
+        );
+
+      }
+    }
+
+
+    /* =========================================================
+       18. Socket.io Connection
+    ========================================================= */
+
+    let alertSocket = null;
+
+
+    function connectAlerts() {
+
+      if (typeof io === "undefined") {
+
+        console.warn(
+          "Socket.io client not loaded"
+        );
+
+        $("acConn").textContent = "offline";
+
+        $("acConn").className = "ac-conn off";
+
+        return null;
+      }
+
+
+      // Prevent duplicate connections
+      if (alertSocket) {
+
+        return alertSocket;
+
+      }
+
+
+      alertSocket = io({
+
+        transports: [
+          "websocket",
+          "polling"
+        ],
+
+        reconnection: true,
+
+        reconnectionDelay: 1000,
+
+        reconnectionDelayMax: 8000
+
+      });
+
+
+      const conn = $("acConn");
+
+
+      const setConn = connected => {
+
+        conn.textContent =
+          connected ? "live" : "offline";
+
+        conn.className =
+          "ac-conn " +
+          (connected ? "on" : "off");
+
+      };
+
+
+      alertSocket.on("connect", () => {
+
+        console.log(
+          "Alert Center connected:",
+          alertSocket.id
+        );
+
+        setConn(true);
+
+      });
+
+
+      alertSocket.on("disconnect", reason => {
+
+        console.warn(
+          "Alert Center disconnected:",
+          reason
+        );
+
+        setConn(false);
+
+      });
+
+
+      alertSocket.on("connect_error", error => {
+
+        console.error(
+          "Socket.io connection error:",
+          error.message
+        );
+
+        setConn(false);
+
+      });
+
+
+      // Listen for new real-time alerts
+      alertSocket.on("new_alert", onNewAlert);
+
+
+      return alertSocket;
+    }
+
+
+    /* =========================================================
+       19. Dashboard Initialization
+    ========================================================= */
+
     $("refresh").onclick = load;
+
+
+    // Load dashboard once
     load();
+
+
+    // Load existing alerts once
+    loadInitialAlerts();
+
+
+    // Establish one Socket.io connection
+    connectAlerts();
+
+
+    console.log(
+      "Dashboard and Alert Center initialized successfully."
+    );
+
   </script>
 </body>
 

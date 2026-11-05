@@ -1,0 +1,1184 @@
+{
+  "run_at": "2026-11-05 11:05 UTC",
+  "base": "http://127.0.0.1:8000",
+  "energy_expected": "present",
+  "passed": 41,
+  "total": 41,
+  "results": [
+    {
+      "id": "meta-questions",
+      "mode": "-",
+      "question": "GET /chat/questions",
+      "checks": {
+        "six_mandatory": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q1-en",
+      "mode": "deterministic",
+      "question": "What is the building status right now?",
+      "intent": "status",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- HVAC: 3 assets (2 OK, 0 WARNING, 1 CRITICAL), 1153 events of which 5 critical. [F2]\n- NETWORK: 2 assets (2 OK, 0 WARNING, 0 CRITICAL), 678 events of which 6 critical. [F3]\n- ACCESS: 3 assets (3 OK, 0 WARNING, 0 CRITICAL), 351 events of which 1 critical. [F4]\n- CCTV: 3 assets (3 OK, 0 WARNING, 0 CRITICAL), 351 events of which 0 critical. [F5]\n- FIRE_ALARM: 2 assets (1 OK, 0 WARNING, 1 CRITICAL), 69 events of which 4 critical. [F6]\n- Active fire alarms right now: 1. [F7]\n- FA-PANEL-02 (Meeting Rooms): CRITICAL - Smoke alarm active (open incident) since 2026-11-04 22:58 UTC. [F8]\n- HVAC-AHU-01 (Open Office): CRITICAL - Smoke alarm active (open incident) since 2026-11-04 22:50 UTC. [F9]\n- Open alerts: 16 critical, 8 warning, 0 info. [F10]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q1-ar",
+      "mode": "deterministic",
+      "question": "إيه حالة المبنى دلوقتي؟",
+      "intent": "status",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- HVAC: 3 أصل (2 OK، 0 WARNING، 1 CRITICAL)، و1153 حدث منها 5 حرج. [F2]\n- NETWORK: 2 أصل (2 OK، 0 WARNING، 0 CRITICAL)، و678 حدث منها 6 حرج. [F3]\n- ACCESS: 3 أصل (3 OK، 0 WARNING، 0 CRITICAL)، و351 حدث منها 1 حرج. [F4]\n- CCTV: 3 أصل (3 OK، 0 WARNING، 0 CRITICAL)، و351 حدث منها 0 حرج. [F5]\n- FIRE_ALARM: 2 أصل (1 OK، 0 WARNING، 1 CRITICAL)، و69 حدث منها 4 حرج. [F6]\n- إنذارات الحريق النشطة حالياً: 1. [F7]\n- FA-PANEL-02 (Meeting Rooms): CRITICAL - Smoke alarm active (open incident) منذ 2026-11-04 22:58 UTC. [F8]\n- HVAC-AHU-01 (Open Office): CRITICAL - Smoke alarm active (open incident) منذ 2026-11-04 22:50 UTC. [F9]\n- التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية. [F10]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q2-en",
+      "mode": "deterministic",
+      "question": "What are the recent faults?",
+      "intent": "faults",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Total fault events: 27 across 12 assets. [F2]\n- SW-CORE-01 (NETWORK): LINK_DOWN x 5 (5 critical), last 2026-11-03 09:30 UTC. [F3]\n- HVAC-CRAC-01 (HVAC): HIGH_TEMPERATURE x 5 (3 critical), last 2026-11-02 13:30 UTC. [F4]\n- FA-PANEL-02 (FIRE_ALARM): SMOKE_DETECTED x 4 (3 critical), last 2026-11-04 22:58 UTC. [F5]\n- HVAC-AHU-01 (HVAC): SMOKE_DETECTED x 1 (1 critical), last 2026-11-04 22:50 UTC. [F6]\n- SW-ACCESS-02 (NETWORK): LINK_DOWN x 1 (1 critical), last 2026-11-03 08:41 UTC. [F7]\n- HVAC-AHU-01 (HVAC): HIGH_TEMPERATURE x 1 (1 critical), last 2026-11-03 02:52 UTC. [F8]\n- DOOR-LOBBY-01 (ACCESS): DOOR_FORCED x 1 (1 critical), last 2026-11-02 15:44 UTC. [F9]\n- FA-PANEL-01 (FIRE_ALARM): SMOKE_DETECTED x 1 (1 critical), last 2026-11-02 08:57 UTC. [F10]\n- 7 more fault groups are not listed. [F11]\n- Open incidents right now: 2 (HVAC-AHU-01, FA-PANEL-02). [F12]\n- Open alerts: 16 critical, 8 warning, 0 info. [F13]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q2-ar",
+      "mode": "deterministic",
+      "question": "إيه الأعطال الأخيرة؟",
+      "intent": "faults",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- إجمالي أحداث الأعطال: 27 على 12 أصل. [F2]\n- SW-CORE-01 (NETWORK): LINK_DOWN × 5 (منها 5 حرج)، آخرها 2026-11-03 09:30 UTC. [F3]\n- HVAC-CRAC-01 (HVAC): HIGH_TEMPERATURE × 5 (منها 3 حرج)، آخرها 2026-11-02 13:30 UTC. [F4]\n- FA-PANEL-02 (FIRE_ALARM): SMOKE_DETECTED × 4 (منها 3 حرج)، آخرها 2026-11-04 22:58 UTC. [F5]\n- HVAC-AHU-01 (HVAC): SMOKE_DETECTED × 1 (منها 1 حرج)، آخرها 2026-11-04 22:50 UTC. [F6]\n- SW-ACCESS-02 (NETWORK): LINK_DOWN × 1 (منها 1 حرج)، آخرها 2026-11-03 08:41 UTC. [F7]\n- HVAC-AHU-01 (HVAC): HIGH_TEMPERATURE × 1 (منها 1 حرج)، آخرها 2026-11-03 02:52 UTC. [F8]\n- DOOR-LOBBY-01 (ACCESS): DOOR_FORCED × 1 (منها 1 حرج)، آخرها 2026-11-02 15:44 UTC. [F9]\n- FA-PANEL-01 (FIRE_ALARM): SMOKE_DETECTED × 1 (منها 1 حرج)، آخرها 2026-11-02 08:57 UTC. [F10]\n- وفيه 7 مجموعات أعطال أخرى لم تُعرض. [F11]\n- حوادث مفتوحة حالياً: 2 (HVAC-AHU-01، FA-PANEL-02). [F12]\n- التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية. [F13]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q3-en",
+      "mode": "deterministic",
+      "question": "What is the CCTV camera availability?",
+      "intent": "cameras",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Total cameras: 3, of which 0 are offline now. [F2]\n- Current camera availability: 100.0% (3 of 3 online). [F3]\n- Camera-offline incidents in the window: 4. [F4]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "camera_availability_pct": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q3-ar",
+      "mode": "deterministic",
+      "question": "إيه حالة الكاميرات؟",
+      "intent": "cameras",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- إجمالي الكاميرات: 3، منها 0 غير متصلة حالياً. [F2]\n- توافر الكاميرات الحالي: 100.0% (3 من 3 متصلة). [F3]\n- حوادث انقطاع الكاميرات في النافذة: 4. [F4]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "camera_availability_pct": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q4-en",
+      "mode": "deterministic",
+      "question": "Are there any network issues?",
+      "intent": "network",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Network availability: 99.706% across 2 network assets, total downtime 1525 s. [F2]\n- LINK_DOWN incidents in the window: 6. [F3]\n- Bandwidth: average 529.5 Mbps, peak 1008.6 Mbps. [F4]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q4-ar",
+      "mode": "deterministic",
+      "question": "في مشاكل في الشبكة؟",
+      "intent": "network",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- توافر الشبكة: 99.706% على 2 أصل شبكة، وإجمالي زمن الانقطاع 1525 ثانية. [F2]\n- حوادث LINK_DOWN في النافذة: 6. [F3]\n- استهلاك النطاق: متوسط 529.5 Mbps وذروة 1008.6 Mbps. [F4]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q5-en",
+      "mode": "deterministic",
+      "question": "What should we fix first? Give me the repair priorities.",
+      "intent": "repair",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Ranking rule: open CRITICAL incident 100 points, open WARNING incident 50, each open critical alert 20, each open warning alert 8, each fault in the last 60 minutes 3 points. [F2]\n- Priority 1: FA-PANEL-02 (FIRE_ALARM, Meeting Rooms) - Smoke alarm active (open incident), since 2026-11-04 22:58 UTC; 5 critical and 0 warning open alerts; score 200. [F3]\n- Priority 2: HVAC-AHU-01 (HVAC, Open Office) - Smoke alarm active (open incident), since 2026-11-04 22:50 UTC; 1 critical and 0 warning open alerts; score 120. [F4]\n- Priority 3: SW-CORE-01 (NETWORK, Server Room) - no recent faults; 4 critical and 0 warning open alerts; score 80. [F5]\n- Priority 4: CAM-SERVER-01 (CCTV, Server Room) - no recent faults; 1 critical and 2 warning open alerts; score 36. [F6]\n- Priority 5: DOOR-LOBBY-01 (ACCESS, Lobby) - no recent faults; 1 critical and 1 warning open alerts; score 28. [F7]\n- 5 more assets have lower priority. [F8]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q5-ar",
+      "mode": "deterministic",
+      "question": "إيه أولويات الإصلاح؟",
+      "intent": "repair",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- قاعدة الترتيب: حادث مفتوح حرج 100 نقطة، حادث مفتوح تحذيري 50، كل تنبيه حرج مفتوح 20، كل تنبيه تحذيري مفتوح 8، وكل عطل في آخر 60 دقيقة 3 نقاط. [F2]\n- الأولوية 1: FA-PANEL-02 (FIRE_ALARM، Meeting Rooms) - Smoke alarm active (open incident)، منذ 2026-11-04 22:58 UTC؛ 5 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 200. [F3]\n- الأولوية 2: HVAC-AHU-01 (HVAC، Open Office) - Smoke alarm active (open incident)، منذ 2026-11-04 22:50 UTC؛ 1 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 120. [F4]\n- الأولوية 3: SW-CORE-01 (NETWORK، Server Room) - no recent faults؛ 4 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 80. [F5]\n- الأولوية 4: CAM-SERVER-01 (CCTV، Server Room) - no recent faults؛ 1 تنبيه حرج و2 تحذيري مفتوح؛ النقاط 36. [F6]\n- الأولوية 5: DOOR-LOBBY-01 (ACCESS، Lobby) - no recent faults؛ 1 تنبيه حرج و1 تحذيري مفتوح؛ النقاط 28. [F7]\n- وفيه 5 أصول أخرى بأولوية أقل. [F8]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q6-en",
+      "mode": "deterministic",
+      "question": "How did the energy consumption change?",
+      "intent": "energy",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- HVAC-AHU-01 (ENERGY_READING): 72 readings, average 47.56 kWh, max 59.5. [F2]\n- Consumption change: average reading 47.56 kWh in the current window versus 42.46 kWh in the previous window of equal length, a change of 12.0%. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q6-ar",
+      "mode": "deterministic",
+      "question": "إيه التغير في استهلاك الطاقة؟",
+      "intent": "energy",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- HVAC-AHU-01 (ENERGY_READING): 72 قراءة، متوسط 47.56 kWh، أقصى 59.5. [F2]\n- التغيّر في الاستهلاك: متوسط القراءة 47.56 kWh في النافذة الحالية مقابل 42.46 kWh في النافذة السابقة بنفس الطول، أي تغيّر بنسبة 12.0%. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "K1-en",
+      "mode": "deterministic",
+      "question": "What are the building KPIs?",
+      "intent": "kpi",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Asset health: 84.6% healthy (11 of 13 assets OK). [F2]\n- Current camera availability: 100.0% (3 of 3 online). [F3]\n- Network availability: 99.706% with total downtime 1525 s. [F4]\n- Fault events in the window: 27, of which 16 critical. [F5]\n- Open incidents right now: 2. [F6]\n- Active fire alarms right now: 1. [F7]\n- Open alerts: 16 critical, 8 warning, 0 info. [F8]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "K1-ar",
+      "mode": "deterministic",
+      "question": "إيه مؤشرات الأداء للمبنى؟",
+      "intent": "kpi",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- صحة الأصول: 84.6% سليمة (11 من 13 أصل بحالة OK). [F2]\n- توافر الكاميرات الحالي: 100.0% (3 من 3 متصلة). [F3]\n- توافر الشبكة: 99.706% وإجمالي زمن الانقطاع 1525 ثانية. [F4]\n- أحداث الأعطال في النافذة: 27 منها 16 حرج. [F5]\n- الحوادث المفتوحة حالياً: 2. [F6]\n- إنذارات الحريق النشطة حالياً: 1. [F7]\n- التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية. [F8]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H1-en",
+      "mode": "deterministic",
+      "question": "What was the average temperature yesterday?",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Period: yesterday (2026-11-04) UTC, relative to the day of the latest recorded event. [F1]\n- TEMPERATURE_READING: 24 readings, average 23.0 C, min 19.6, max 26.6. [F2]\n- HVAC-AHU-01: average 23.0 C over 24 readings. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H1-ar",
+      "mode": "deterministic",
+      "question": "إيه متوسط الحرارة امبارح؟",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- الفترة: امبارح (2026-11-04) بتوقيت UTC، محسوبة نسبةً ليوم آخر حدث مسجل. [F1]\n- TEMPERATURE_READING: 24 قراءة، المتوسط 23.0 C، الأدنى 19.6، الأقصى 26.6. [F2]\n- HVAC-AHU-01: متوسط 23.0 C على 24 قراءة. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H2-en",
+      "mode": "deterministic",
+      "question": "How many times was access denied in the last 3 days?",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Number of ACCESS_DENIED events in the period: 63 (recorded events only). [F2]\n- DOOR-SERVER-01 (ACCESS_DENIED): 23 times, last 2026-11-03 08:11 UTC. [F3]\n- DOOR-EXEC-01 (ACCESS_DENIED): 22 times, last 2026-11-03 05:40 UTC. [F4]\n- DOOR-LOBBY-01 (ACCESS_DENIED): 18 times, last 2026-11-03 08:36 UTC. [F5]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H2-ar",
+      "mode": "deterministic",
+      "question": "كام مرة اتمنع حد من الدخول؟",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- عدد أحداث ACCESS_DENIED في الفترة: 63 (حسب الأحداث المسجلة فقط). [F2]\n- DOOR-SERVER-01 (ACCESS_DENIED): 23 مرة، آخرها 2026-11-03 08:11 UTC. [F3]\n- DOOR-EXEC-01 (ACCESS_DENIED): 22 مرة، آخرها 2026-11-03 05:40 UTC. [F4]\n- DOOR-LOBBY-01 (ACCESS_DENIED): 18 مرة، آخرها 2026-11-03 08:36 UTC. [F5]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": false
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "OOS-en",
+      "mode": "deterministic",
+      "question": "Tell me a joke about cats",
+      "intent": "out_of_scope",
+      "source": "RULES",
+      "data_sufficient": false,
+      "confidence": "high",
+      "answer": "I can only answer about the building data: building status, faults, cameras, network, repair priorities, energy consumption, KPIs and historical readings (temperature, humidity, access events). Please ask about one of these.",
+      "grounding": {
+        "passed": true,
+        "violations": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "OOS-ar",
+      "mode": "deterministic",
+      "question": "مين كسب الماتش امبارح؟",
+      "intent": "out_of_scope",
+      "source": "RULES",
+      "data_sufficient": false,
+      "confidence": "high",
+      "answer": "أقدر أجاوب فقط عن بيانات المبنى: حالة المبنى، الأعطال، الكاميرات، الشبكة، أولويات الإصلاح، استهلاك الطاقة، مؤشرات الأداء (KPIs)، والقراءات التاريخية (حرارة، رطوبة، محاولات الدخول). اسألني في واحد منهم.",
+      "grounding": {
+        "passed": true,
+        "violations": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q1-en",
+      "mode": "llm",
+      "question": "What is the building status right now?",
+      "intent": "status",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "The building currently has 1 active fire alarm [F7]. There are critical incidents related to smoke alarms in FA-PANEL-02 [F8] and HVAC-AHU-01 [F9]. The HVAC system has 1 critical asset [F2], and the network and access control systems are operating without issues [F3][F4]. There are 16 critical open alerts in total [F10].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 2,
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "asset name FA-PANEL-02 must be written exactly as in the facts",
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q1-ar",
+      "mode": "llm",
+      "question": "إيه حالة المبنى دلوقتي؟",
+      "intent": "status",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- النافذة الزمنية: آخر 72 ساعة حتى 2026-11-05 06:00 UTC (وقت آخر حدث مسجل). [F1]\n- HVAC: 3 أصل (2 OK، 0 WARNING، 1 CRITICAL)، و1153 حدث منها 5 حرج. [F2]\n- NETWORK: 2 أصل (2 OK، 0 WARNING، 0 CRITICAL)، و678 حدث منها 6 حرج. [F3]\n- ACCESS: 3 أصل (3 OK، 0 WARNING، 0 CRITICAL)، و351 حدث منها 1 حرج. [F4]\n- CCTV: 3 أصل (3 OK، 0 WARNING، 0 CRITICAL)، و351 حدث منها 0 حرج. [F5]\n- FIRE_ALARM: 2 أصل (1 OK، 0 WARNING، 1 CRITICAL)، و69 حدث منها 4 حرج. [F6]\n- إنذارات الحريق النشطة حالياً: 1. [F7]\n- FA-PANEL-02 (Meeting Rooms): CRITICAL - Smoke alarm active (open incident) منذ 2026-11-04 22:58 UTC. [F8]\n- HVAC-AHU-01 (Open Office): CRITICAL - Smoke alarm active (open incident) منذ 2026-11-04 22:50 UTC. [F9]\n- التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية. [F10]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": true,
+        "llm_error": "answer failed grounding validation twice",
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "number 4 is not in the facts you cited (it appears in F6: cite that fact next to it)",
+              "number 2026 is not in the facts you cited"
+            ]
+          },
+          {
+            "attempt": 2,
+            "violations": [
+              "the answer must also cite F10 (التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية.)",
+              "number 2026 is not in the facts you cited"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q2-en",
+      "mode": "llm",
+      "question": "What are the recent faults?",
+      "intent": "faults",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "The recent faults include HVAC-AHU-01 with HIGH_TEMPERATURE and SMOKE_DETECTED, FA-PANEL-02 with SMOKE_DETECTED, and SW-ACCESS-02 with LINK_DOWN. There are 2 open incidents [F12] (HVAC-AHU-01, FA-PANEL-02) and 16 critical alerts [F13] currently active.",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 2,
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "no fact citation",
+              "the answer must also cite F12 (Open incidents right now: 2 (HVAC-AHU-01, FA-PANEL-02).)",
+              "the answer must also cite F13 (Open alerts: 16 critical, 8 warning, 0 info.)",
+              "number 2 is not in the facts you cited (it appears in F12: cite that fact next to it)",
+              "number 16 is not in the facts you cited (it appears in F13: cite that fact next to it)"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q2-ar",
+      "mode": "llm",
+      "question": "إيه الأعطال الأخيرة؟",
+      "intent": "faults",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "الأعطال الأخيرة تشمل:\n- انقطاع الشبكة SW-CORE-01، آخره 2026-11-03 09:30 UTC [F3]\n- ارتفاع درجة الحرارة في HVAC-CRAC-01، آخره 2026-11-02 13:30 UTC [F4]\n- اكتشاف الدخان في FA-PANEL-02، آخره 2026-11-04 22:58 UTC [F5]\n- اكتشاف الدخان في HVAC-AHU-01، آخره 2026-11-04 22:50 UTC [F6]\n- ارتفاع درجة الحرارة في HVAC-AHU-01، آخره 2026-11-03 02:52 UTC [F8]\n- فتح الباب في DOOR-LOBBY-01، آخره 2026-11-02 15:44 UTC [F9]\n- انقطاع الشبكة SW-ACCESS-02، آخره 2026-11-03 08:41 UTC [F7]\nعدد الحوادث المفتوحة حالياً هو 2 (HVAC-AHU-01، FA-PANEL-02) [F12]\nعدد التنبيهات المفتوحة هو 16 حرجة، 8 تحذيرية، 0 معلوماتية [F13].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 2,
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "asset name DOOR-LOBBY-01 must be written exactly as in the facts",
+              "the answer must also cite F12 (حوادث مفتوحة حالياً: 2 (HVAC-AHU-01، FA-PANEL-02).)",
+              "the answer must also cite F13 (التنبيهات المفتوحة: 16 حرجة، 8 تحذيرية، 0 معلوماتية.)"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q3-en",
+      "mode": "llm",
+      "question": "What is the CCTV camera availability?",
+      "intent": "cameras",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "The current camera availability is [F3]100.0% [F2][F3]3 of 3 cameras are online.",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 2,
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "no fact citation",
+              "the answer must also cite F3 (Current camera availability: 100.0% (3 of 3 online).)",
+              "number 100.0 is not in the facts you cited (it appears in F3: cite that fact next to it)",
+              "number 3 is not in the facts you cited (it appears in F2, F3: cite that fact next to it)"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "camera_availability_pct": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q3-ar",
+      "mode": "llm",
+      "question": "إيه حالة الكاميرات؟",
+      "intent": "cameras",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "الكاميرات تعمل بنسبة 100.0% [F3] وعدد الكاميرات المتصلة حالياً هو 3 من 3 [F2] وخلال آخر 72 ساعة تم تسجيل 4 حوادث انقطاع [F4].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "camera_availability_pct": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q4-en",
+      "mode": "llm",
+      "question": "Are there any network issues?",
+      "intent": "network",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "There were 6 LINK_DOWN incidents in the last 72 hours ending 2026-11-05 06:00 UTC [F3]. The network availability is 99.706% across 2 network assets [F2].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 2,
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "no fact citation",
+              "number 6 is not in the facts you cited (it appears in F3: cite that fact next to it)",
+              "number 99.706 is not in the facts you cited (it appears in F2: cite that fact next to it)",
+              "number 2 is not in the facts you cited (it appears in F2: cite that fact next to it)",
+              "number 1525 is not in the facts you cited (it appears in F2: cite that fact next to it)"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q4-ar",
+      "mode": "llm",
+      "question": "في مشاكل في الشبكة؟",
+      "intent": "network",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "medium",
+      "answer": "الشبكة تعمل بشكل جيد حيث أن نسبة توافر الشبكة هي 99.706% [F2]. ومع ذلك، تم تسجيل 6 حوادث LINK_DOWN في النافذة الزمنية الأخيرة [F3].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q5-en",
+      "mode": "llm",
+      "question": "What should we fix first? Give me the repair priorities.",
+      "intent": "repair",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "The repair priorities are as follows: \n- Fix FA-PANEL-02 first due to its critical incident and active smoke alarm [F3]. \n- Next, address HVAC-AHU-01 with its active smoke alarm and critical incident [F4]. \n- Then, handle SW-CORE-01 with 4 critical alerts [F5]. \n- Follow up with CAM-SERVER-01 and DOOR-LOBBY-01, both with multiple alerts [F6][F7].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q5-ar",
+      "mode": "llm",
+      "question": "إيه أولويات الإصلاح؟",
+      "intent": "repair",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "الأولوية 1: FA-PANEL-02 (FIRE_ALARM، Meeting Rooms) - Smoke alarm active (open incident)، منذ 2026-11-04 22:58 UTC؛ 5 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 200 [F3]。\nالأولوية 2: HVAC-AHU-01 (HVAC، Open Office) - Smoke alarm active (open incident)، منذ 2026-11-04 22:50 UTC؛ 1 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 120 [F4]。\nالأولوية 3: SW-CORE-01 (NETWORK، Server Room) - 4 تنبيه حرج و0 تحذيري مفتوح؛ النقاط 80 [F5]。\nالأولوية 4: CAM-SERVER-01 (CCTV، Server Room) - 1 تنبيه حرج و2 تحذيري مفتوح؛ النقاط 36 [F6]。\nالأولوية 5: DOOR-LOBBY-01 (ACCESS، Lobby) - 1 تنبيه حرج و1 تحذيري مفتوح؛ النقاط 28 [F7]。",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q6-en",
+      "mode": "llm",
+      "question": "How did the energy consumption change?",
+      "intent": "energy",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- HVAC-AHU-01 (ENERGY_READING): 72 readings, average 47.56 kWh, max 59.5. [F2]\n- Consumption change: average reading 47.56 kWh in the current window versus 42.46 kWh in the previous window of equal length, a change of 12.0%. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": true,
+        "llm_error": "answer failed grounding validation twice",
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "no fact citation",
+              "the answer must also cite F3 (Consumption change: average reading 47.56 kWh in the current window ve)",
+              "number 12.0 is not in the facts you cited (it appears in F3: cite that fact next to it)",
+              "number 47.56 is not in the facts you cited (it appears in F2, F3: cite that fact next to it)",
+              "number 42.46 is not in the facts you cited (it appears in F3: cite that fact next to it)"
+            ]
+          },
+          {
+            "attempt": 2,
+            "violations": [
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "Q6-ar",
+      "mode": "llm",
+      "question": "إيه التغير في استهلاك الطاقة؟",
+      "intent": "energy",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "توجد زيادة في استهلاك الطاقة بنسبة 12.0% في النافذة الحالية مقارنة بالنافذة السابقة [F3].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "K1-en",
+      "mode": "llm",
+      "question": "What are the building KPIs?",
+      "intent": "kpi",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "The asset health is 84.6% healthy, with 11 of 13 assets OK [F2]. Current camera availability is 100.0% [F3]. Network availability is 99.706%, with 1525 seconds of downtime [F4]. There are 2 open incidents [F6] and 1 active fire alarm [F7]. There are 16 critical and 8 warning open alerts [F8].",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "K1-ar",
+      "mode": "llm",
+      "question": "إيه مؤشرات الأداء للمبنى؟",
+      "intent": "kpi",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "الصحة العامة للأصول هي 84.6% [F2]، وتوافر الكاميرات هو 100.0% [F3]، وتوافر الشبكة هو 99.706% مع إجمالي زمن الانقطاع 1525 ثانية [F4]، وعدد أحداث الأعطال في النافذة الأخيرة هو 27 منها 16 حرج [F5]، وعدد الحوادث المفتوحة حالياً هو 2 [F6]، وعدد إنذارات الحريق النشطة حالياً هو 1 [F7]، وعدد التنبيهات المفتوحة هو 16 حرجة، 8 تحذيرية، 0 معلوماتية [F8]。",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H1-en",
+      "mode": "llm",
+      "question": "What was the average temperature yesterday?",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Period: yesterday (2026-11-04) UTC, relative to the day of the latest recorded event. [F1]\n- TEMPERATURE_READING: 24 readings, average 23.0 C, min 19.6, max 26.6. [F2]\n- HVAC-AHU-01: average 23.0 C over 24 readings. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": true,
+        "llm_error": "answer failed grounding validation twice",
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          },
+          {
+            "attempt": 2,
+            "violations": [
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H1-ar",
+      "mode": "llm",
+      "question": "إيه متوسط الحرارة امبارح؟",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- الفترة: امبارح (2026-11-04) بتوقيت UTC، محسوبة نسبةً ليوم آخر حدث مسجل. [F1]\n- TEMPERATURE_READING: 24 قراءة، المتوسط 23.0 C، الأدنى 19.6، الأقصى 26.6. [F2]\n- HVAC-AHU-01: متوسط 23.0 C على 24 قراءة. [F3]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": true,
+        "llm_error": "answer failed grounding validation twice",
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          },
+          {
+            "attempt": 2,
+            "violations": [
+              "asset name HVAC-AHU-01 must be written exactly as in the facts"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H2-en",
+      "mode": "llm",
+      "question": "How many times was access denied in the last 3 days?",
+      "intent": "history",
+      "source": "FALLBACK",
+      "data_sufficient": true,
+      "confidence": "high",
+      "answer": "- Window: last 72 h ending 2026-11-05 06:00 UTC (latest recorded event). [F1]\n- Number of ACCESS_DENIED events in the period: 63 (recorded events only). [F2]\n- DOOR-SERVER-01 (ACCESS_DENIED): 23 times, last 2026-11-03 08:11 UTC. [F3]\n- DOOR-EXEC-01 (ACCESS_DENIED): 22 times, last 2026-11-03 05:40 UTC. [F4]\n- DOOR-LOBBY-01 (ACCESS_DENIED): 18 times, last 2026-11-03 08:36 UTC. [F5]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "llm_attempted": true,
+        "llm_error": "answer failed grounding validation twice",
+        "rejected_answers": [
+          {
+            "attempt": 1,
+            "violations": [
+              "no fact citation",
+              "the answer must also cite F2 (Number of ACCESS_DENIED events in the period: 63 (recorded events only)",
+              "number 63 is not in the facts you cited (it appears in F2: cite that fact next to it)",
+              "number 3 is not in the facts you cited"
+            ]
+          },
+          {
+            "attempt": 2,
+            "violations": [
+              "number 3 is not in the facts you cited"
+            ]
+          }
+        ]
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "H2-ar",
+      "mode": "llm",
+      "question": "كام مرة اتمنع حد من الدخول؟",
+      "intent": "history",
+      "source": "OLLAMA",
+      "data_sufficient": true,
+      "confidence": "low",
+      "answer": "في الفترة الأخيرة، تم رصد 63 حالة منع دخول (ACCESS_DENIED) حسب الأحداث المسجلة. تم منع دخول النافذة DOOR-SERVER-01 23 مرة، و DOOR-EXEC-01 22 مرة، و DOOR-LOBBY-01 18 مرة. [F2][F3][F4][F5]",
+      "grounding": {
+        "passed": true,
+        "violations": [],
+        "attempts": 1,
+        "rejected_answers": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "has_citations": true,
+        "citations_exist": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "OOS-en",
+      "mode": "llm",
+      "question": "Tell me a joke about cats",
+      "intent": "out_of_scope",
+      "source": "RULES",
+      "data_sufficient": false,
+      "confidence": "high",
+      "answer": "I can only answer about the building data: building status, faults, cameras, network, repair priorities, energy consumption, KPIs and historical readings (temperature, humidity, access events). Please ask about one of these.",
+      "grounding": {
+        "passed": true,
+        "violations": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    },
+    {
+      "id": "OOS-ar",
+      "mode": "llm",
+      "question": "مين كسب الماتش امبارح؟",
+      "intent": "out_of_scope",
+      "source": "RULES",
+      "data_sufficient": false,
+      "confidence": "high",
+      "answer": "أقدر أجاوب فقط عن بيانات المبنى: حالة المبنى، الأعطال، الكاميرات، الشبكة، أولويات الإصلاح، استهلاك الطاقة، مؤشرات الأداء (KPIs)، والقراءات التاريخية (حرارة، رطوبة، محاولات الدخول). اسألني في واحد منهم.",
+      "grounding": {
+        "passed": true,
+        "violations": []
+      },
+      "checks": {
+        "http_200": true,
+        "intent": true,
+        "language": true,
+        "answer_not_empty": true,
+        "grounding_passed": true,
+        "data_sufficient": true
+      },
+      "passed": true
+    }
+  ]
+}
