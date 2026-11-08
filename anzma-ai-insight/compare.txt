@@ -1,0 +1,152 @@
+Both models have approximately 3 billion parameters and were suitable for your hardware at the tested configuration.
+2. Cold-start performance comparison
+Cold start means the model was not already loaded into memory.
+Measurement	Qwen	Llama	Winner
+Model loading	149.06 s	120.85 s	Llama
+Generation speed	54.77 tokens/s	59.46 tokens/s	Llama
+
+Cold model loading time
+Seconds; lower is better.
+
+
+0 s40 s80 s120 s160 sQwenLlama
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conclusion: Llama loaded approximately 28.21 seconds faster in this recorded test.
+3. Warm performance comparison
+Warm means the model was already loaded into memory.
+Measurement	Qwen	Llama	Winner
+Model loading	0.42 s	0.41 s	Almost equal
+Generation speed	57.85 tokens/s	58.27 tokens/s	Almost equal
+
+Warm generation speed
+Tokens per second; higher is better.
+
+
+0 tokens/s20 tokens/s40 tokens/s60 tokens/s80 tokens/sQwenLlama
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conclusion: There is practically no meaningful warm-speed difference in these single measurements.
+4. English vs. Arabic comparison
+This is particularly important because Anzma AI Insight is intended to support bilingual interaction.
+Test	Qwen 2.5 3B	Llama 3.2 3B
+English project explanation	Good	Good
+Arabic project explanation	Inconsistent	Inconsistent
+English AI vs. ML explanation	Answered in Arabic	Clearer English answer
+Arabic terminology	Sometimes understandable, sometimes unnatural	Sometimes corrupted or mixed
+Same-language instruction	Failed in some tests	Failed in some tests
+Overall Arabic reliability	Limited	Limited
+
+Important observations:
+- Qwen sometimes produced more understandable Arabic.
+- Qwen also unexpectedly generated Chinese in one conversation test.
+- Llama provided better English explanations in the latest tests.
+- Both models sometimes mixed Arabic and English or generated malformed Arabic.
+Neither model passed the professional Arabic reliability requirement
+Neither should be trusted to provide unverified operational instructions in Arabic.
+5. Security scenario comparison
+Both models received this same synthetic scenario:
+A restricted door recorded three denied access attempts within five minutes. Give me three possible explanations and safe investigation steps. Do not assume a cause.
+
+Evaluation	Qwen	Llama
+Identify possible causes	Partial	Good
+Explain possible causes	Generic	More organized
+Suggest investigation steps	Some questionable recommendations	More relevant overall
+English response	Language inconsistency	Reasonably good
+Arabic response	Unsatisfactory	Failed
+Avoid unsupported assumptions	Inconsistent	Some limitations
+
+Conclusion: Llama performed better in the English security scenario, although its recommendations still require human verification.
+6. Project awareness and conversation memory
+We also tested whether the models understood the current prototype and remembered previous messages.
+Test	Qwen	Llama
+Explain Anzma AI Insight	Passed in English	Passed in English
+Identify features not implemented	Passed	Passed, with some misleading claims in other responses
+Remember Building Alpha	Passed in one test	Passed
+Maintain conversation context	Inconsistent	Generally better in recorded tests
+Avoid inventing capabilities	Some failures	Some failures
+
+One important example: Llama once claimed the application learns from user interactions and improves over time. That feature is not implemented.
+
+This demonstrates why a system prompt helps but cannot guarantee factual accuracy.
+7. Memory and hardware usage
+Measurement	Qwen	Llama
+Model file	1.9 GB	2.0 GB
+GPU memory at context 2048	Not recorded	Approximately 2.3 GB
+GPU/CPU distribution at context 2048	Not recorded	100% GPU in one observation
+GPU/CPU distribution at context 4096	Not recorded	20% GPU / 80% CPU
+
+We cannot declare a memory winner because we did not record equivalent measurements for Qwen.
+
+Also, model file size is not the same as total runtime memory. The model, context/KV cache, and runtime overhead all contribute to memory usage.
+8. Token comparison: Arabic vs. English
+You asked earlier to compare Arabic and English token counts.
+
+This measurement is not complete.
+
+We did not consistently record:
+- Input tokens for both languages.
+- Output tokens for both languages.
+- Time to first token.
+- Generation speed for identical Arabic and English prompts.
+Therefore, we should not invent numerical results.
+
+Qwen and Llama use different tokenizers, so the same Arabic sentence can produce different token counts. This is important when estimating context consumption and inference cost.
+9. Final overall scorecard
+This is a qualitative summary of your recorded tests, not a formal benchmark score.
+Category	Qwen	Llama
+Cold-start speed	Good	Better
+Warm speed	Very good	Very good
+English explanations	Good	Better overall
+Arabic explanations	Inconsistent	Inconsistent
+Security scenario	Weaker	Better in English
+Conversation memory	Mixed	Mixed, with good recall
+Project awareness	Good with limitations	Good with limitations
+Hardware suitability	Suitable	Suitable
+
+10. Final decision
+Selected provisional default
+Llama 3.2 3B
+
+Llama 3.2 3B
+Reasons:
+- Faster recorded cold-start time.
+- Better English explanations in your latest tests.
+- Better English security-scenario response.
+- Almost identical warm generation speed to Qwen.
+
+Alternative: Qwen 2.5 3B
+
+Keep it available for further Arabic-language evaluation and comparison.
+
+11. What we have not measured yet
+For a more complete engineering comparison, these tests remain:
+1. Repeated runs to calculate average cold and warm performance.
+2. Equivalent RAM and VRAM measurements for both models.
+3. Arabic and English input/output token counts.
+4. Time-to-first-token for both models.
+5. Offline operation with the internet disconnected.

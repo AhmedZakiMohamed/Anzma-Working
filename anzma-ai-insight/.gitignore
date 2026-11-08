@@ -1,0 +1,21 @@
+﻿# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Local model files
+models/
+ollama-models/
+*.gguf
+
+# Private keys
+*.pem
+*.key
